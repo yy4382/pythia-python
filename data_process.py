@@ -11,10 +11,13 @@ raw_ds2 = load_dataset("Vezora/Tested-22k-Python-Alpaca",split="train")
 
 def ds2_preprocess_function(data):
     return {
-        "prompt": f"""Below is an instruction that describes a task. Write a response that appropriately completes the request. ### Instruction: 
-        {data["instruction"]}  ### Input: ### Output: 
+        "prompt": f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
+        ### Instruction: 
+        {data["instruction"]}
+        ### Input: 
+        ### Output: 
         {data["output"]}
-        """.replace("\n","")
+        """
     }
 ds2 = raw_ds2.map(ds2_preprocess_function, num_proc=4, remove_columns=raw_ds2.column_names)
 # print(ds2["train"][0])
@@ -22,18 +25,22 @@ ds2 = raw_ds2.map(ds2_preprocess_function, num_proc=4, remove_columns=raw_ds2.co
 
 def ds1_preprocess_function(data):
     return {
-        "prompt": f"""Below is an instruction that describes a task. Write a response that appropriately completes the request. ### Instruction: 
-        {data["instruction"]}  ### Input: 
+        "prompt": f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
+        ### Instruction: 
+        {data["instruction"]}
+        ### Input: 
         {data["input"]}
         ### Output: 
-        ```python {data["output"]} ```
-        """.replace("\n","")
+        ```python
+        {data["output"]}
+        ```
+        """
     }
 
 ds1 = raw_ds1.map(ds1_preprocess_function, num_proc=4, remove_columns=raw_ds1.column_names)
 
 dataset = concatenate_datasets([ds1, ds2]).shuffle()
-dataset = dataset.train_test_split(test_size=0.1)
+dataset = dataset.train_test_split(test_size=0.05)
 
 def preprocess_function(data):
     return tokenizer(data["prompt"])
@@ -46,7 +53,7 @@ tokenized_datasets = dataset.map(
     remove_columns=dataset["test"].column_names,
 )
 
-block_size = 1024
+block_size = 512
 
 
 def group_texts(examples):
